@@ -2,95 +2,137 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Minecraft Skin Viewer</title>
 <style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body {
     margin: 0; padding: 0; width: 100%; height: 100%;
-    background: linear-gradient(135deg, #1e1030 0%, #3a1f5c 50%, #2a1245 100%);
-    font-family: 'Segoe UI', sans-serif;
+    background: radial-gradient(ellipse at 50% 30%, #3a1f5c 0%, #1e1030 55%, #140a24 100%);
+    font-family: 'Segoe UI', 'Hiragino Sans', sans-serif;
     color: #f0e6ff;
     overflow: hidden;
     position: fixed;
     inset: 0;
   }
   #container { position: fixed; inset: 0; width: 100vw; height: 100vh; }
-  #viewer3d { width: 100%; height: 100%; display: block; cursor: grab; }
+  #viewer3d { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
   #viewer3d:active { cursor: grabbing; }
 
   .panel {
     position: absolute;
-    top: 20px; left: 20px;
+    top: 16px; left: 16px;
     background: rgba(20, 10, 40, 0.55);
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border: 1px solid rgba(180, 140, 255, 0.35);
     border-radius: 14px;
-    padding: 16px 20px;
+    padding: 14px 18px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    max-width: 60vw;
   }
   .panel h1 {
-    font-size: 16px; margin: 0 0 6px 0;
+    font-size: 15px; margin: 0 0 4px 0; font-weight: 600;
     background: linear-gradient(90deg, #d9a8ff, #fff);
     -webkit-background-clip: text; background-clip: text; color: transparent;
+    white-space: nowrap;
   }
-  .panel p { font-size: 12px; margin: 0; opacity: 0.75; }
+  .panel p { font-size: 11px; margin: 0; opacity: 0.7; line-height: 1.4; }
 
   #controls {
     position: absolute;
-    bottom: 20px; left: 50%;
+    bottom: 16px; left: 50%;
     transform: translateX(-50%);
-    display: flex; gap: 10px;
+    display: flex; gap: 8px;
     background: rgba(20, 10, 40, 0.55);
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border: 1px solid rgba(180, 140, 255, 0.35);
     border-radius: 30px;
-    padding: 8px 14px;
+    padding: 7px 10px;
+    max-width: calc(100vw - 24px);
   }
   button {
-    background: rgba(160, 100, 255, 0.25);
+    background: rgba(160, 100, 255, 0.22);
     border: 1px solid rgba(200, 150, 255, 0.5);
     color: #f0e6ff;
-    padding: 8px 16px;
+    padding: 8px 14px;
     border-radius: 20px;
-    font-size: 13px;
+    font-size: 12px;
     cursor: pointer;
     transition: all 0.2s;
+    white-space: nowrap;
   }
   button:hover { background: rgba(180, 120, 255, 0.45); transform: translateY(-1px); }
-  button.active { background: rgba(200, 140, 255, 0.6); }
+  button:active { transform: translateY(0); }
+  button.active { background: rgba(200, 140, 255, 0.65); box-shadow: 0 0 12px rgba(200,140,255,0.5); }
 
   #sheetPanel {
     position: absolute;
-    top: 20px; right: 20px;
+    top: 16px; right: 16px;
     background: rgba(20, 10, 40, 0.55);
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border: 1px solid rgba(180, 140, 255, 0.35);
     border-radius: 14px;
-    padding: 14px;
+    padding: 10px;
     text-align: center;
   }
   #sheetPanel canvas {
     image-rendering: pixelated;
-    border-radius: 8px;
+    image-rendering: -moz-crisp-edges;
+    border-radius: 6px;
     border: 1px solid rgba(180,140,255,0.3);
+    display: block;
   }
-  #sheetPanel p { font-size: 11px; margin: 6px 0 0 0; opacity: 0.7; }
+  #sheetPanel p { font-size: 10px; margin: 5px 0 0 0; opacity: 0.65; }
 
   #loading {
     position: absolute; top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 14px; opacity: 0.7;
+    font-size: 13px; opacity: 0.7;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+  .spinner {
+    width: 28px; height: 28px;
+    border: 3px solid rgba(200,150,255,0.25);
+    border-top-color: #c98bff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  #zoomHint {
+    position: absolute;
+    bottom: 68px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px; opacity: 0.45;
+    pointer-events: none;
+    white-space: nowrap;
+    transition: opacity 0.4s;
+  }
+
+  @media (max-width: 560px) {
+    .panel { max-width: 55vw; padding: 10px 14px; }
+    .panel h1 { font-size: 13px; }
+    .panel p { display: none; }
+    #sheetPanel { padding: 7px; }
+    #sheetPanel canvas { width: 72px; height: 72px; }
+    #sheetPanel p { display: none; }
+    button { padding: 7px 10px; font-size: 11px; }
+    #controls { gap: 5px; }
   }
 </style>
 </head>
 <body>
 
 <div id="container">
-  <div id="loading">読み込み中...</div>
+  <div id="loading"><div class="spinner"></div><span>読み込み中...</span></div>
   <canvas id="viewer3d"></canvas>
 
   <div class="panel">
     <h1>🎮 Minecraft Skin Viewer</h1>
-    <p>ドラッグで回転 / スクロールでズーム</p>
+    <p>ドラッグで回転・ピンチ/スクロールでズーム</p>
   </div>
 
   <div id="sheetPanel">
@@ -98,11 +140,13 @@
     <p>元スキンシート (64×64)</p>
   </div>
 
+  <div id="zoomHint">2本指でピンチしてズーム</div>
+
   <div id="controls">
     <button id="btnRotate" class="active">🔄 自動回転</button>
     <button id="btnFront">正面</button>
     <button id="btnBack">背面</button>
-    <button id="btnReset">リセット</button>
+    <button id="btnReset">↺ リセット</button>
   </div>
 </div>
 
@@ -122,7 +166,7 @@ skinImg.onload = () => {
   init3D();
 };
 skinImg.onerror = () => {
-  document.getElementById('loading').textContent = 'スキン画像の読み込みに失敗しました';
+  document.getElementById('loading').innerHTML = '<span>⚠ skin.png が同じフォルダに見つかりません</span>';
 };
 skinImg.src = SKIN_URL;
 
@@ -130,6 +174,7 @@ skinImg.src = SKIN_URL;
 let scene, camera, renderer, skinTexture;
 let autoRotate = true;
 let modelGroup;
+const PIXEL = 1.4; // 1 マイクラピクセル = PIXEL ワールド単位 (本家プレイヤーモデルの縦横比をそのまま拡大)
 
 function init3D() {
   document.getElementById('loading').style.display = 'none';
@@ -138,23 +183,40 @@ function init3D() {
   const w = canvas.clientWidth, h = canvas.clientHeight;
 
   scene = new THREE.Scene();
-  camera = new THREE.PerspectiveCamera(40, w / h, 0.1, 1000);
-  camera.position.set(0, 3, 60);
+  camera = new THREE.PerspectiveCamera(38, w / h, 0.1, 1000);
+  camera.position.set(0, 2, 62);
 
   renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
   renderer.setSize(w, h);
-  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-  const ambient = new THREE.AmbientLight(0xffffff, 0.9);
+  // 実物の見た目に近いフラット寄りのライティング(色が沈まないよう環境光を強め)
+  const ambient = new THREE.AmbientLight(0xffffff, 1.05);
   scene.add(ambient);
-  const dir = new THREE.DirectionalLight(0xffffff, 0.6);
-  dir.position.set(5, 10, 7);
+  const dir = new THREE.DirectionalLight(0xffffff, 0.38);
+  dir.position.set(6, 12, 9);
   scene.add(dir);
-  const dir2 = new THREE.DirectionalLight(0x9a6bff, 0.3);
-  dir2.position.set(-5, -5, -5);
+  const dir2 = new THREE.DirectionalLight(0xb98bff, 0.18);
+  dir2.position.set(-6, -3, -6);
   scene.add(dir2);
 
-  // テクスチャ生成
+  // 足元のふわっとした影(演出)
+  const shadowCanvas = document.createElement('canvas');
+  shadowCanvas.width = 128; shadowCanvas.height = 128;
+  const shctx = shadowCanvas.getContext('2d');
+  const grad = shctx.createRadialGradient(64,64,0,64,64,64);
+  grad.addColorStop(0, 'rgba(0,0,0,0.45)');
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+  shctx.fillStyle = grad;
+  shctx.fillRect(0,0,128,128);
+  const shadowTex = new THREE.CanvasTexture(shadowCanvas);
+  const shadowMat = new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false });
+  const shadowMesh = new THREE.Mesh(new THREE.PlaneGeometry(22*PIXEL, 22*PIXEL), shadowMat);
+  shadowMesh.rotation.x = -Math.PI / 2;
+  shadowMesh.position.y = -16*PIXEL + 0.05;
+  scene.add(shadowMesh);
+
+  // テクスチャ生成(ピクセルパーフェクトに保つため中間キャンバスを経由)
   const canvasTex = document.createElement('canvas');
   canvasTex.width = 64; canvasTex.height = 64;
   const tctx = canvasTex.getContext('2d');
@@ -164,6 +226,7 @@ function init3D() {
   skinTexture = new THREE.CanvasTexture(canvasTex);
   skinTexture.magFilter = THREE.NearestFilter;
   skinTexture.minFilter = THREE.NearestFilter;
+  skinTexture.generateMipmaps = false;
   skinTexture.flipY = true;
 
   modelGroup = new THREE.Group();
@@ -173,31 +236,31 @@ function init3D() {
 
   animate();
   attachControls(canvas);
+
+  // ズームヒントは数秒で消す
+  setTimeout(() => {
+    const hint = document.getElementById('zoomHint');
+    if (hint) hint.style.opacity = '0';
+  }, 3500);
 }
 
-// UV座標からマテリアル配列を作る関数 (テクスチャは64x64を基準に正規化)
+// UV座標からジオメトリのUVを直接書き換える(64x64テクスチャ基準)
 function uvBox(w, h, d, faceCoords) {
-  // faceCoords: {px, nx, py, ny, pz, nz} 各 [x, y, w, h] in texture pixels (64x64 base)
   const geo = new THREE.BoxGeometry(w, h, d);
   const uvAttr = geo.attributes.uv;
   const tw = 64, th = 64;
 
-  function setFace(faceIndex, coords, flipX, flipY) {
+  function setFace(faceIndex, coords) {
     const [x, y, ww, hh] = coords;
-    let u0 = x / tw, u1 = (x + ww) / tw;
-    let v0 = 1 - (y + hh) / th, v1 = 1 - y / th;
-    if (flipX) [u0, u1] = [u1, u0];
-    // 4 vertices per face, 2 uv per vertex
-    const base = faceIndex * 8;
-    // order: (u1,v1) (u0,v1) (u1,v0) (u0,v0) matches BoxGeometry default winding often;
-    // we'll just set all 4 corners appropriately
+    const u0 = x / tw, u1 = (x + ww) / tw;
+    const v0 = 1 - (y + hh) / th, v1 = 1 - y / th;
     uvAttr.setXY(faceIndex*4+0, u1, v1);
     uvAttr.setXY(faceIndex*4+1, u0, v1);
     uvAttr.setXY(faceIndex*4+2, u1, v0);
     uvAttr.setXY(faceIndex*4+3, u0, v0);
   }
 
-  // BoxGeometry face order: +x, -x, +y, -y, +z, -z
+  // BoxGeometry の面の並び順: +x, -x, +y, -y, +z, -z
   setFace(0, faceCoords.px);
   setFace(1, faceCoords.nx);
   setFace(2, faceCoords.py);
@@ -209,195 +272,121 @@ function uvBox(w, h, d, faceCoords) {
   return geo;
 }
 
-function makePart(w, h, d, faceCoords, texture, scale) {
-  const geo = uvBox(w, h, d, faceCoords);
-  const mat = new THREE.MeshLambertMaterial({ map: texture, transparent: true, alphaTest: 0.5 });
-  const mesh = new THREE.Mesh(geo, mat);
-  return mesh;
+// オーバーレイ(帽子/ジャケット/袖/ズボン)は本家仕様どおり「各辺+0.5ピクセル」膨らませる。
+// scale は (元サイズ+1)/元サイズ で正確に計算する。
+function overlayScale(baseW, baseH, baseD) {
+  return {
+    x: (baseW + 1) / baseW,
+    y: (baseH + 1) / baseH,
+    z: (baseD + 1) / baseD,
+  };
 }
 
 function buildPlayerModel(group, texture) {
-  const S = 1.4; // overall scale factor (1 minecraft pixel = S units)
+  const S = PIXEL;
+  const baseMat = () => new THREE.MeshLambertMaterial({ map: texture, transparent: true, alphaTest: 0.02 });
+  const overlayMat = () => new THREE.MeshLambertMaterial({ map: texture, transparent: true, alphaTest: 0.5, side: THREE.DoubleSide });
 
-  // ---- HEAD (8x8x8) ----
+  // 本家の高さ基準: 脚12px + 胴12px + 頭8px = 32px、脚の中心を y=6*S に置き足裏が y=0 になるようにする
+  const LEG_Y = 6 * S;
+  const BODY_Y = 18 * S;
+  const HEAD_Y = 28 * S;
+  const ARM_Y = 18 * S; // 腕の上端が頭の下端(y=24*S)に来るよう胴と同じ中心高さ
+
+  // ---- 頭 (8x8x8) ----
   const headGeo = uvBox(8*S, 8*S, 8*S, {
-    px: [16,8,8,8],  // right
-    nx: [0,8,8,8],   // left
-    py: [8,0,8,8],   // top
-    ny: [16,0,8,8],  // bottom
-    pz: [8,8,8,8],   // front
-    nz: [24,8,8,8],  // back
+    px: [16,8,8,8], nx: [0,8,8,8], py: [8,0,8,8], ny: [16,0,8,8], pz: [8,8,8,8], nz: [24,8,8,8],
   });
-  const headMat = new THREE.MeshLambertMaterial({ map: texture, transparent: true });
-  const head = new THREE.Mesh(headGeo, headMat);
-  head.position.y = 28*S;
+  const head = new THREE.Mesh(headGeo, baseMat());
+  head.position.y = HEAD_Y;
   group.add(head);
 
-  // Head overlay (hat layer) - same base size, scaled up uniformly around head center
   const headOGeo = uvBox(8*S, 8*S, 8*S, {
-    px: [48,8,8,8],
-    nx: [32,8,8,8],
-    py: [40,0,8,8],
-    ny: [48,0,8,8],
-    pz: [40,8,8,8],
-    nz: [56,8,8,8],
+    px: [48,8,8,8], nx: [32,8,8,8], py: [40,0,8,8], ny: [48,0,8,8], pz: [40,8,8,8], nz: [56,8,8,8],
   });
-  const headO = new THREE.Mesh(headOGeo, new THREE.MeshLambertMaterial({map: texture, transparent:true, alphaTest:0.5, side: THREE.DoubleSide}));
-  headO.scale.set(1.1, 1.1, 1.1);
-  headO.position.y = 28*S;
+  const headO = new THREE.Mesh(headOGeo, overlayMat());
+  const hs = overlayScale(8,8,8);
+  headO.scale.set(hs.x, hs.y, hs.z);
+  headO.position.y = HEAD_Y;
   group.add(headO);
 
-  // ---- BODY (8x12x4) ----
+  // ---- 胴体 (8x12x4) ----
   const bodyGeo = uvBox(8*S, 12*S, 4*S, {
-    px: [28,20,4,12],
-    nx: [16,20,4,12],
-    py: [20,16,8,4],
-    ny: [28,16,8,4],
-    pz: [20,20,8,12],
-    nz: [32,20,8,12],
+    px: [28,20,4,12], nx: [16,20,4,12], py: [20,16,8,4], ny: [28,16,8,4], pz: [20,20,8,12], nz: [32,20,8,12],
   });
-  const body = new THREE.Mesh(bodyGeo, new THREE.MeshLambertMaterial({map: texture, transparent:true}));
-  body.position.y = 18*S;
+  const body = new THREE.Mesh(bodyGeo, baseMat());
+  body.position.y = BODY_Y;
   group.add(body);
 
-  // Body overlay (jacket)
   const bodyOGeo = uvBox(8*S, 12*S, 4*S, {
-    px: [28,36,4,12],
-    nx: [16,36,4,12],
-    py: [20,32,8,4],
-    ny: [28,32,8,4],
-    pz: [20,36,8,12],
-    nz: [32,36,8,12],
+    px: [28,36,4,12], nx: [16,36,4,12], py: [20,32,8,4], ny: [28,32,8,4], pz: [20,36,8,12], nz: [32,36,8,12],
   });
-  const bodyO = new THREE.Mesh(bodyOGeo, new THREE.MeshLambertMaterial({map: texture, transparent:true, alphaTest:0.5, side: THREE.DoubleSide}));
-  bodyO.scale.set(1.08, 1.05, 1.15);
-  bodyO.position.y = 18*S;
+  const bodyO = new THREE.Mesh(bodyOGeo, overlayMat());
+  const bs = overlayScale(8,12,4);
+  bodyO.scale.set(bs.x, bs.y, bs.z);
+  bodyO.position.y = BODY_Y;
   group.add(bodyO);
 
-  // ---- ARMS (4x12x4) each ----
-  function buildArm(isRight) {
-    const armX = isRight ? [40,20,4,12] : [40,20,4,12]; // right arm uses right-arm texture region (slim/classic same base coords used commonly)
-    // Classic (non-slim) arm UV regions:
-    // Right arm: standard skin region x=40,y=16 (8x4 top/bottom) body 40,20 4x12
-    const coords = isRight ? {
-      px: [44,20,4,12],
-      nx: [36,20,4,12],
-      py: [40,16,4,4],
-      ny: [44,16,4,4],
-      pz: [40,20,4,12],
-      nz: [48,20,4,12],
+  // ---- 腕 (4x12x4) ----
+  function armCoords(isRight) {
+    return isRight ? {
+      px: [44,20,4,12], nx: [36,20,4,12], py: [40,16,4,4], ny: [44,16,4,4], pz: [40,20,4,12], nz: [48,20,4,12],
     } : {
-      px: [36,52,4,12],
-      nx: [44,52,4,12],
-      py: [44,48,4,4],
-      ny: [48,48,4,4],
-      pz: [40,52,4,12],
-      nz: [48,52,4,12],
+      px: [36,52,4,12], nx: [44,52,4,12], py: [44,48,4,4], ny: [48,48,4,4], pz: [40,52,4,12], nz: [48,52,4,12],
     };
-    const geo = uvBox(4*S, 12*S, 4*S, coords);
-    const mesh = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({map: texture, transparent:true}));
-    return mesh;
+  }
+  function armOverlayCoords(isRight) {
+    return isRight ? {
+      px: [44,36,4,12], nx: [36,36,4,12], py: [40,32,4,4], ny: [44,32,4,4], pz: [40,36,4,12], nz: [48,36,4,12],
+    } : {
+      px: [52,52,4,12], nx: [60,52,4,12], py: [56,48,4,4], ny: [60,48,4,4], pz: [48,52,4,12], nz: [56,52,4,12],
+    };
   }
 
-  const rightArm = buildArm(true);
-  rightArm.position.set(-6*S, 18*S, 0);
-  group.add(rightArm);
+  const asx = overlayScale(4,12,4);
+  [true, false].forEach(isRight => {
+    const sign = isRight ? -1 : 1;
+    const arm = new THREE.Mesh(uvBox(4*S,12*S,4*S, armCoords(isRight)), baseMat());
+    arm.position.set(sign * 6*S, ARM_Y, 0);
+    group.add(arm);
 
-  const leftArm = buildArm(false);
-  leftArm.position.set(6*S, 18*S, 0);
-  group.add(leftArm);
+    const armO = new THREE.Mesh(uvBox(4*S,12*S,4*S, armOverlayCoords(isRight)), overlayMat());
+    armO.scale.set(asx.x, asx.y, asx.z);
+    armO.position.set(sign * 6*S, ARM_Y, 0);
+    group.add(armO);
+  });
 
-  // Arm overlays (sleeves)
-  function buildArmOverlay(isRight) {
-    const coords = isRight ? {
-      px: [44,36,4,12],
-      nx: [36,36,4,12],
-      py: [40,32,4,4],
-      ny: [44,32,4,4],
-      pz: [40,36,4,12],
-      nz: [48,36,4,12],
+  // ---- 脚 (4x12x4) ----
+  function legCoords(isRight) {
+    return isRight ? {
+      px: [8,20,4,12], nx: [0,20,4,12], py: [4,16,4,4], ny: [8,16,4,4], pz: [4,20,4,12], nz: [12,20,4,12],
     } : {
-      px: [52,52,4,12],
-      nx: [60,52,4,12],
-      py: [56,48,4,4],
-      ny: [60,48,4,4],
-      pz: [48,52,4,12],
-      nz: [56,52,4,12],
+      px: [24,52,4,12], nx: [16,52,4,12], py: [20,48,4,4], ny: [24,48,4,4], pz: [20,52,4,12], nz: [28,52,4,12],
     };
-    const geo = uvBox(4*S, 12*S, 4*S, coords);
-    const mesh = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({map: texture, transparent:true, alphaTest:0.5, side: THREE.DoubleSide}));
-    mesh.scale.set(1.15, 1.06, 1.15);
-    return mesh;
   }
-  const rightArmO = buildArmOverlay(true);
-  rightArmO.position.set(-6*S, 18*S, 0);
-  group.add(rightArmO);
-
-  const leftArmO = buildArmOverlay(false);
-  leftArmO.position.set(6*S, 18*S, 0);
-  group.add(leftArmO);
-
-  // ---- LEGS (4x12x4) each ----
-  function buildLeg(isRight) {
-    const coords = isRight ? {
-      px: [8,20,4,12],
-      nx: [0,20,4,12],
-      py: [4,16,4,4],
-      ny: [8,16,4,4],
-      pz: [4,20,4,12],
-      nz: [12,20,4,12],
+  function legOverlayCoords(isRight) {
+    return isRight ? {
+      px: [8,36,4,12], nx: [0,36,4,12], py: [4,32,4,4], ny: [8,32,4,4], pz: [4,36,4,12], nz: [12,36,4,12],
     } : {
-      px: [24,52,4,12],
-      nx: [16,52,4,12],
-      py: [20,48,4,4],
-      ny: [24,48,4,4],
-      pz: [20,52,4,12],
-      nz: [28,52,4,12],
+      px: [8,52,4,12], nx: [0,52,4,12], py: [4,48,4,4], ny: [8,48,4,4], pz: [4,52,4,12], nz: [12,52,4,12],
     };
-    const geo = uvBox(4*S, 12*S, 4*S, coords);
-    const mesh = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({map: texture, transparent:true}));
-    return mesh;
   }
-  const rightLeg = buildLeg(true);
-  rightLeg.position.set(-2*S, 6*S, 0);
-  group.add(rightLeg);
 
-  const leftLeg = buildLeg(false);
-  leftLeg.position.set(2*S, 6*S, 0);
-  group.add(leftLeg);
+  const lsx = overlayScale(4,12,4);
+  [true, false].forEach(isRight => {
+    const sign = isRight ? -1 : 1;
+    const leg = new THREE.Mesh(uvBox(4*S,12*S,4*S, legCoords(isRight)), baseMat());
+    leg.position.set(sign * 2*S, LEG_Y, 0);
+    group.add(leg);
 
-  // Leg overlays
-  function buildLegOverlay(isRight) {
-    const coords = isRight ? {
-      px: [8,36,4,12],
-      nx: [0,36,4,12],
-      py: [4,32,4,4],
-      ny: [8,32,4,4],
-      pz: [4,36,4,12],
-      nz: [12,36,4,12],
-    } : {
-      px: [8,52,4,12],
-      nx: [0,52,4,12],
-      py: [4,48,4,4],
-      ny: [8,48,4,4],
-      pz: [4,52,4,12],
-      nz: [12,52,4,12],
-    };
-    const geo = uvBox(4*S, 12*S, 4*S, coords);
-    const mesh = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({map: texture, transparent:true, alphaTest:0.5, side: THREE.DoubleSide}));
-    mesh.scale.set(1.15, 1.05, 1.15);
-    return mesh;
-  }
-  const rightLegO = buildLegOverlay(true);
-  rightLegO.position.set(-2*S, 6*S, 0);
-  group.add(rightLegO);
+    const legO = new THREE.Mesh(uvBox(4*S,12*S,4*S, legOverlayCoords(isRight)), overlayMat());
+    legO.scale.set(lsx.x, lsx.y, lsx.z);
+    legO.position.set(sign * 2*S, LEG_Y, 0);
+    group.add(legO);
+  });
 
-  const leftLegO = buildLegOverlay(false);
-  leftLegO.position.set(2*S, 6*S, 0);
-  group.add(leftLegO);
-
-  // center whole model (feet at y=0, total height ~32*S, so shift down by half)
-  group.position.y = -16*S;
+  // 全体を足元が y=0 になるよう中心合わせ (総高さ32px = HEAD_Yの上端 32*S)
+  group.position.y = -16 * S;
 }
 
 function animate() {
@@ -412,12 +401,18 @@ function animate() {
 function attachControls(canvas) {
   let isDragging = false;
   let prevX = 0, prevY = 0;
+  let pinchStartDist = null;
+  let pinchStartZ = 0;
+
+  function dist(t0, t1) {
+    const dx = t0.clientX - t1.clientX, dy = t0.clientY - t1.clientY;
+    return Math.sqrt(dx*dx + dy*dy);
+  }
 
   canvas.addEventListener('mousedown', (e) => {
     isDragging = true;
     prevX = e.clientX; prevY = e.clientY;
-    autoRotate = false;
-    document.getElementById('btnRotate').classList.remove('active');
+    setAutoRotate(false);
   });
   window.addEventListener('mouseup', () => isDragging = false);
   window.addEventListener('mousemove', (e) => {
@@ -430,16 +425,28 @@ function attachControls(canvas) {
     prevX = e.clientX; prevY = e.clientY;
   });
 
-  // touch
   canvas.addEventListener('touchstart', (e) => {
-    isDragging = true;
-    prevX = e.touches[0].clientX; prevY = e.touches[0].clientY;
-    autoRotate = false;
-    document.getElementById('btnRotate').classList.remove('active');
+    if (e.touches.length === 1) {
+      isDragging = true;
+      prevX = e.touches[0].clientX; prevY = e.touches[0].clientY;
+      setAutoRotate(false);
+    } else if (e.touches.length === 2) {
+      isDragging = false;
+      pinchStartDist = dist(e.touches[0], e.touches[1]);
+      pinchStartZ = camera.position.z;
+    }
   }, {passive:true});
-  window.addEventListener('touchend', () => isDragging = false);
+
+  window.addEventListener('touchend', () => { isDragging = false; pinchStartDist = null; });
+
   window.addEventListener('touchmove', (e) => {
-    if (!isDragging) return;
+    if (e.touches.length === 2 && pinchStartDist) {
+      const d = dist(e.touches[0], e.touches[1]);
+      const ratio = pinchStartDist / d;
+      camera.position.z = Math.max(20, Math.min(140, pinchStartZ * ratio));
+      return;
+    }
+    if (!isDragging || e.touches.length !== 1) return;
     const dx = e.touches[0].clientX - prevX;
     const dy = e.touches[0].clientY - prevY;
     modelGroup.rotation.y += dx * 0.01;
@@ -451,7 +458,7 @@ function attachControls(canvas) {
   canvas.addEventListener('wheel', (e) => {
     e.preventDefault();
     camera.position.z += e.deltaY * 0.02;
-    camera.position.z = Math.max(20, Math.min(130, camera.position.z));
+    camera.position.z = Math.max(20, Math.min(140, camera.position.z));
   }, {passive:false});
 
   window.addEventListener('resize', () => {
@@ -461,10 +468,12 @@ function attachControls(canvas) {
     renderer.setSize(w, h);
   });
 
-  document.getElementById('btnRotate').addEventListener('click', (e) => {
-    autoRotate = !autoRotate;
-    e.target.classList.toggle('active', autoRotate);
-  });
+  function setAutoRotate(v) {
+    autoRotate = v;
+    document.getElementById('btnRotate').classList.toggle('active', v);
+  }
+
+  document.getElementById('btnRotate').addEventListener('click', () => setAutoRotate(!autoRotate));
   document.getElementById('btnFront').addEventListener('click', () => {
     modelGroup.rotation.y = 0;
     modelGroup.rotation.x = 0;
@@ -475,7 +484,7 @@ function attachControls(canvas) {
   });
   document.getElementById('btnReset').addEventListener('click', () => {
     modelGroup.rotation.set(0,0,0);
-    camera.position.set(0, 3, 60);
+    camera.position.set(0, 2, 62);
   });
 }
 </script>
