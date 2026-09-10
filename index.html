@@ -5,13 +5,15 @@
 <title>Minecraft Skin Viewer</title>
 <style>
   html, body {
-    margin: 0; padding: 0; height: 100%;
+    margin: 0; padding: 0; width: 100%; height: 100%;
     background: linear-gradient(135deg, #1e1030 0%, #3a1f5c 50%, #2a1245 100%);
     font-family: 'Segoe UI', sans-serif;
     color: #f0e6ff;
     overflow: hidden;
+    position: fixed;
+    inset: 0;
   }
-  #container { position: relative; width: 100%; height: 100vh; }
+  #container { position: fixed; inset: 0; width: 100vw; height: 100vh; }
   #viewer3d { width: 100%; height: 100%; display: block; cursor: grab; }
   #viewer3d:active { cursor: grabbing; }
 
@@ -136,8 +138,8 @@ function init3D() {
   const w = canvas.clientWidth, h = canvas.clientHeight;
 
   scene = new THREE.Scene();
-  camera = new THREE.PerspectiveCamera(35, w / h, 0.1, 1000);
-  camera.position.set(0, 8, 45);
+  camera = new THREE.PerspectiveCamera(40, w / h, 0.1, 1000);
+  camera.position.set(0, 3, 60);
 
   renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
   renderer.setSize(w, h);
@@ -228,11 +230,11 @@ function buildPlayerModel(group, texture) {
   });
   const headMat = new THREE.MeshLambertMaterial({ map: texture, transparent: true });
   const head = new THREE.Mesh(headGeo, headMat);
-  head.position.y = (12+4)*S;
+  head.position.y = 28*S;
   group.add(head);
 
-  // Head overlay (hat layer) 8x8x8 slightly bigger
-  const headOGeo = uvBox(8.5*S, 8.5*S, 8.5*S, {
+  // Head overlay (hat layer) - same base size, scaled up uniformly around head center
+  const headOGeo = uvBox(8*S, 8*S, 8*S, {
     px: [48,8,8,8],
     nx: [32,8,8,8],
     py: [40,0,8,8],
@@ -241,7 +243,8 @@ function buildPlayerModel(group, texture) {
     nz: [56,8,8,8],
   });
   const headO = new THREE.Mesh(headOGeo, new THREE.MeshLambertMaterial({map: texture, transparent:true, alphaTest:0.5, side: THREE.DoubleSide}));
-  headO.position.y = (12+4)*S;
+  headO.scale.set(1.1, 1.1, 1.1);
+  headO.position.y = 28*S;
   group.add(headO);
 
   // ---- BODY (8x12x4) ----
@@ -254,11 +257,11 @@ function buildPlayerModel(group, texture) {
     nz: [32,20,8,12],
   });
   const body = new THREE.Mesh(bodyGeo, new THREE.MeshLambertMaterial({map: texture, transparent:true}));
-  body.position.y = 12*S;
+  body.position.y = 18*S;
   group.add(body);
 
   // Body overlay (jacket)
-  const bodyOGeo = uvBox(8.5*S, 12.5*S, 4.5*S, {
+  const bodyOGeo = uvBox(8*S, 12*S, 4*S, {
     px: [28,36,4,12],
     nx: [16,36,4,12],
     py: [20,32,8,4],
@@ -267,7 +270,8 @@ function buildPlayerModel(group, texture) {
     nz: [32,36,8,12],
   });
   const bodyO = new THREE.Mesh(bodyOGeo, new THREE.MeshLambertMaterial({map: texture, transparent:true, alphaTest:0.5, side: THREE.DoubleSide}));
-  bodyO.position.y = 12*S;
+  bodyO.scale.set(1.08, 1.05, 1.15);
+  bodyO.position.y = 18*S;
   group.add(bodyO);
 
   // ---- ARMS (4x12x4) each ----
@@ -296,11 +300,11 @@ function buildPlayerModel(group, texture) {
   }
 
   const rightArm = buildArm(true);
-  rightArm.position.set(-6*S, 12*S, 0);
+  rightArm.position.set(-6*S, 18*S, 0);
   group.add(rightArm);
 
   const leftArm = buildArm(false);
-  leftArm.position.set(6*S, 12*S, 0);
+  leftArm.position.set(6*S, 18*S, 0);
   group.add(leftArm);
 
   // Arm overlays (sleeves)
@@ -320,16 +324,17 @@ function buildPlayerModel(group, texture) {
       pz: [48,52,4,12],
       nz: [56,52,4,12],
     };
-    const geo = uvBox(4.5*S, 12.5*S, 4.5*S, coords);
+    const geo = uvBox(4*S, 12*S, 4*S, coords);
     const mesh = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({map: texture, transparent:true, alphaTest:0.5, side: THREE.DoubleSide}));
+    mesh.scale.set(1.15, 1.06, 1.15);
     return mesh;
   }
   const rightArmO = buildArmOverlay(true);
-  rightArmO.position.set(-6*S, 12*S, 0);
+  rightArmO.position.set(-6*S, 18*S, 0);
   group.add(rightArmO);
 
   const leftArmO = buildArmOverlay(false);
-  leftArmO.position.set(6*S, 12*S, 0);
+  leftArmO.position.set(6*S, 18*S, 0);
   group.add(leftArmO);
 
   // ---- LEGS (4x12x4) each ----
@@ -354,11 +359,11 @@ function buildPlayerModel(group, texture) {
     return mesh;
   }
   const rightLeg = buildLeg(true);
-  rightLeg.position.set(-2*S, 0, 0);
+  rightLeg.position.set(-2*S, 6*S, 0);
   group.add(rightLeg);
 
   const leftLeg = buildLeg(false);
-  leftLeg.position.set(2*S, 0, 0);
+  leftLeg.position.set(2*S, 6*S, 0);
   group.add(leftLeg);
 
   // Leg overlays
@@ -378,20 +383,21 @@ function buildPlayerModel(group, texture) {
       pz: [4,52,4,12],
       nz: [12,52,4,12],
     };
-    const geo = uvBox(4.5*S, 12.5*S, 4.5*S, coords);
+    const geo = uvBox(4*S, 12*S, 4*S, coords);
     const mesh = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({map: texture, transparent:true, alphaTest:0.5, side: THREE.DoubleSide}));
+    mesh.scale.set(1.15, 1.05, 1.15);
     return mesh;
   }
   const rightLegO = buildLegOverlay(true);
-  rightLegO.position.set(-2*S, 0, 0);
+  rightLegO.position.set(-2*S, 6*S, 0);
   group.add(rightLegO);
 
   const leftLegO = buildLegOverlay(false);
-  leftLegO.position.set(2*S, 0, 0);
+  leftLegO.position.set(2*S, 6*S, 0);
   group.add(leftLegO);
 
-  // center whole model
-  group.position.y = -12*S;
+  // center whole model (feet at y=0, total height ~32*S, so shift down by half)
+  group.position.y = -16*S;
 }
 
 function animate() {
@@ -445,7 +451,7 @@ function attachControls(canvas) {
   canvas.addEventListener('wheel', (e) => {
     e.preventDefault();
     camera.position.z += e.deltaY * 0.02;
-    camera.position.z = Math.max(15, Math.min(100, camera.position.z));
+    camera.position.z = Math.max(20, Math.min(130, camera.position.z));
   }, {passive:false});
 
   window.addEventListener('resize', () => {
@@ -469,7 +475,7 @@ function attachControls(canvas) {
   });
   document.getElementById('btnReset').addEventListener('click', () => {
     modelGroup.rotation.set(0,0,0);
-    camera.position.set(0, 8, 45);
+    camera.position.set(0, 3, 60);
   });
 }
 </script>
