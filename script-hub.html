@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ScriptVault — Robloxスクリプト管理・配布</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0F1117;
+  --bg-soft:#12151D;
+  --panel:#171B24;
+  --panel-alt:#1E2330;
+  --border:#2A2F3D;
+  --border-soft:#22262F;
+  --text:#E7E9EE;
+  --muted:#8B93A7;
+  --muted-2:#5D6478;
+  --accent:#56E8C6;
+  --accent-dim:#2E6E62;
+  --accent-2:#F2A65A;
+  --danger:#F2696B;
+  --radius:10px;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#F5F4F0; --bg-soft:#EFEEE9; --panel:#FFFFFF; --panel-alt:#F7F6F2;
+    --border:#DEDCD3; --border-soft:#E7E5DD; --text:#1B1D22; --muted:#5B5F6B; --muted-2:#8A8E99;
+    --accent-dim:#CDEFE7;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1117; --bg-soft:#12151D; --panel:#171B24;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:'JetBrains Mono',ui-monospace,monospace;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,.brand,.tab,.btn,.section-title{font-family:'Space Grotesk',system-ui,sans-serif}
+::selection{background:var(--accent);color:#04231D}
+a{color:inherit}
+button{font-family:inherit}
+
+/* ---- top bar ---- */
+.topbar{
+  position:sticky; top:0; z-index:20;
+  padding-top:calc(14px + env(safe-area-inset-top,0px));
+  background:linear-gradient(180deg,var(--bg) 70%,transparent);
+  backdrop-filter:blur(6px);
+}
+.topbar-inner{padding:0 16px 10px;}
+.brand{display:flex; align-items:center; gap:10px; margin-bottom:12px;}
+.brand-mark{
+  width:30px;height:30px;border-radius:8px;flex:none;
+  background:linear-gradient(145deg,var(--accent),var(--accent-dim));
+  display:flex;align-items:center;justify-content:center;
+  color:#04231D;font-weight:700;font-size:15px;
+}
+.brand-name{font-size:18px;font-weight:700;letter-spacing:.2px}
+.brand-tag{font-size:11px;color:var(--muted);margin-left:auto;font-family:'JetBrains Mono',monospace}
+
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  flex:none;border:1px solid var(--border);background:var(--panel);
+  color:var(--muted);padding:8px 14px;border-radius:999px;font-size:13px;font-weight:600;
+  cursor:pointer; white-space:nowrap;
+}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#04231D}
+
+/* ---- layout ---- */
+.view{padding:12px 16px 100px;max-width:760px;margin:0 auto;}
+.hidden{display:none !important}
+
+.hero{
+  border:1px solid var(--border); border-radius:var(--radius);
+  background:linear-gradient(155deg,var(--panel),var(--panel-alt));
+  padding:18px; margin-bottom:16px;
+}
+.hero h1{font-size:20px;line-height:1.35;margin:0 0 8px;font-weight:700;}
+.hero p{margin:0;color:var(--muted);font-size:13px;line-height:1.6}
+.hero .stat-row{display:flex;gap:18px;margin-top:14px;font-size:12px;color:var(--muted-2)}
+.hero .stat b{color:var(--accent);font-family:'Space Grotesk',sans-serif;font-size:15px;display:block}
+
+.searchbar{display:flex;gap:8px;margin-bottom:12px}
+.searchbar input[type=text]{
+  flex:1;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
+  padding:11px 12px;color:var(--text);font-size:14px;font-family:inherit;
+}
+.searchbar input::placeholder{color:var(--muted-2)}
+.filter-row{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;scrollbar-width:none}
+.filter-row::-webkit-scrollbar{display:none}
+select{
+  background:var(--panel);border:1px solid var(--border);color:var(--text);
+  border-radius:8px;padding:8px 10px;font-size:12.5px;font-family:inherit;flex:none;
+}
+
+.section-title{font-size:12px;color:var(--muted);text-transform:none;margin:18px 0 8px;font-weight:600}
+
+/* ---- cards ---- */
+.card-list{display:flex;flex-direction:column;gap:10px}
+.card{
+  border:1px solid var(--border);background:var(--panel);border-radius:var(--radius);
+  padding:14px; cursor:pointer; transition:border-color .15s;
+}
+.card:active{border-color:var(--accent)}
+.card-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.card-title{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;margin:0 0 4px;color:var(--text)}
+.card-game{font-size:12px;color:var(--accent)}
+.badge{
+  font-size:10.5px;color:var(--muted-2);border:1px solid var(--border-soft);
+  padding:2px 7px;border-radius:6px;flex:none;font-family:'JetBrains Mono',monospace;
+}
+.badge.owner{color:var(--accent-2);border-color:var(--accent-2)}
+.card-desc{font-size:12.5px;color:var(--muted);margin:8px 0 0;line-height:1.5;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card-meta{display:flex;gap:12px;margin-top:10px;font-size:11px;color:var(--muted-2)}
+.card-meta span{display:flex;align-items:center;gap:4px}
+
+.empty{
+  border:1px dashed var(--border);border-radius:var(--radius);
+  padding:30px 16px;text-align:center;color:var(--muted);font-size:13px;
+}
+
+/* ---- buttons / forms ---- */
+.btn{
+  border:1px solid var(--border);background:var(--panel-alt);color:var(--text);
+  padding:11px 16px;border-radius:8px;font-size:13.5px;font-weight:600;cursor:pointer;
+}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#04231D}
+.btn.danger{background:transparent;border-color:var(--danger);color:var(--danger)}
+.btn.ghost{background:transparent}
+.btn:disabled{opacity:.45}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+
+label{display:block;font-size:12px;color:var(--muted);margin:14px 0 6px;font-weight:600}
+label .req{color:var(--accent-2)}
+input[type=text].field, textarea.field, input[type=password].field{
+  width:100%;background:var(--panel);border:1px solid var(--border);border-radius:8px;
+  color:var(--text);padding:11px 12px;font-size:14px;font-family:inherit;
+}
+textarea.field{resize:vertical}
+.hint{font-size:11.5px;color:var(--muted-2);margin-top:5px;line-height:1.5}
+
+.code-box{position:relative}
+.code-box textarea{
+  width:100%;min-height:130px;background:#0A0C11;border:1px solid var(--border);
+  border-radius:8px;color:#C9F5E8;font-family:'JetBrains Mono',monospace;font-size:12.5px;
+  padding:12px;line-height:1.55;resize:vertical;
+}
+:root:not([data-theme="dark"]) .code-box textarea{background:#12151D;color:#BFF5E6;}
+.code-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--muted-2);margin-top:5px}
+
+.panel-box{border:1px solid var(--border);border-radius:var(--radius);background:var(--panel);padding:16px;margin-bottom:14px}
+.protect-note{
+  border:1px solid var(--accent-dim);background:rgba(86,232,198,.06);border-radius:8px;
+  padding:12px;font-size:12px;color:var(--muted);line-height:1.6;margin:14px 0;
+}
+.protect-note b{color:var(--accent)}
+
+/* ---- detail view ---- */
+.detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px}
+.detail-title{font-family:'Space Grotesk',sans-serif;font-size:19px;font-weight:700;margin:0}
+.detail-sub{font-size:12.5px;color:var(--muted);margin:6px 0 0}
+.detail-sub a{color:var(--accent);text-decoration:none}
+.chip-row{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}
+.chip{font-size:11px;border:1px solid var(--border-soft);color:var(--muted);padding:4px 9px;border-radius:999px}
+.toast{
+  position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));
+  transform:translateX(-50%);background:var(--accent);color:#04231D;
+  padding:10px 18px;border-radius:999px;font-size:12.5px;font-weight:700;
+  box-shadow:0 8px 24px rgba(0,0,0,.35); z-index:50; opacity:0; pointer-events:none;
+  transition:opacity .2s, transform .2s;
+}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(-4px);}
+
+.token-box{
+  display:flex;gap:8px;align-items:center;background:var(--panel-alt);border:1px solid var(--border);
+  border-radius:8px;padding:10px 12px;font-size:12.5px;color:var(--accent-2);
+}
+.token-box code{font-family:'JetBrains Mono',monospace;word-break:break-all}
+
+.my-owner-form{display:flex;gap:8px;margin-top:6px}
+.my-owner-form input{flex:1}
+
+@media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-mark">SV</div>
+      <div class="brand-name">ScriptVault</div>
+      <div class="brand-tag">Roblox script hub</div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" data-tab="browse">ブラウズ</button>
+      <button class="tab" data-tab="submit">投稿する</button>
+      <button class="tab" data-tab="mine">マイスクリプト</button>
+      <button class="tab" data-tab="about">保護・仕組み</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== BROWSE ===================== -->
+<div class="view" id="view-browse">
+  <div class="hero">
+    <h1>Robloxスクリプトを、安全に共有・管理する場所</h1>
+    <p>投稿者の権利を守りながらスクリプトを公開・検索できます。短いスクリプトIDでシェアでき、数十万行級の長大なソースコードにも対応しています。</p>
+    <div class="stat-row">
+      <div class="stat"><b id="stat-total">0</b>公開中</div>
+      <div class="stat"><b id="stat-games">0</b>対応ゲーム</div>
+      <div class="stat"><b id="stat-views">0</b>累計閲覧</div>
+    </div>
+  </div>
+
+  <div class="searchbar">
+    <input type="text" id="search-input" placeholder="タイトル・ゲーム名・タグで検索">
+  </div>
+  <div class="filter-row">
+    <select id="filter-game"><option value="">すべてのゲーム</option></select>
+    <select id="filter-sort">
+      <option value="new">新着順</option>
+      <option value="views">閲覧数順</option>
+      <option value="title">タイトル順</option>
+    </select>
+  </div>
+
+  <div class="card-list" id="card-list"></div>
+</div>
+
+<!-- ===================== SUBMIT ===================== -->
+<div class="view hidden" id="view-submit">
+  <div class="panel-box">
+    <h2 style="margin:0 0 4px;font-size:17px;">スクリプトを投稿</h2>
+    <p style="color:var(--muted);font-size:12.5px;margin:0;">入力内容はこの端末のブラウザに保存されます（下部「保護・仕組み」参照）。</p>
+
+    <label>タイトル <span class="req">*</span></label>
+    <input type="text" class="field" id="f-title" placeholder="例: 自動収集スクリプト">
+
+    <label>ゲーム名 <span class="req">*</span></label>
+    <input type="text" class="field" id="f-game" placeholder="例: Blox Fruits">
+
+    <label>作者名（表示名） <span class="req">*</span></label>
+    <input type="text" class="field" id="f-author" placeholder="あなたのハンドルネーム">
+
+    <label>タグ（カンマ区切り）</label>
+    <input type="text" class="field" id="f-tags" placeholder="例: farm, gui, auto">
+
+    <label>説明</label>
+    <textarea class="field" id="f-desc" rows="3" placeholder="スクリプトの機能や使い方を書いてください"></textarea>
+
+    <label>ライセンス・利用条件（任意）</label>
+    <input type="text" class="field" id="f-license" placeholder="例: 改変禁止 / クレジット表記必須 / 再配布禁止">
+
+    <label>ソースコード <span class="req">*</span></label>
+    <div class="code-box">
+      <textarea class="field" id="f-code" placeholder="-- ここにLuaコードを貼り付け（数十万行でもOK）"></textarea>
+    </div>
+    <div class="code-meta"><span id="code-linecount">0 行 / 0 文字</span><span id="code-warn"></span></div>
+
+    <div class="protect-note">
+      <b>作成者保護</b>：投稿すると専用の「オーナーキー」が発行されます。このキーを持つ端末だけが編集・削除できます。オーナーキーは他人に共有しないでください。紛失すると本人でも編集できなくなります（現状の保存先はこの端末のみのため）。
+    </div>
+
+    <div class="btn-row">
+      <button class="btn primary" id="btn-submit">投稿してオーナーキーを発行</button>
+      <button class="btn ghost" id="btn-clear-form">クリア</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MINE ===================== -->
+<div class="view hidden" id="view-mine">
+  <div class="panel-box">
+    <h2 style="margin:0 0 8px;font-size:17px;">マイスクリプト</h2>
+    <p style="color:var(--muted);font-size:12.5px;margin:0 0 10px;">
+      この端末で投稿したスクリプト、またはオーナーキーを持っているスクリプトが表示されます。
+    </p>
+    <div class="my-owner-form">
+      <input type="text" class="field" id="claim-token" placeholder="別端末で発行されたオーナーキーを入力して復元">
+      <button class="btn" id="btn-claim">復元</button>
+    </div>
+  </div>
+  <div class="section-title">あなたが所有するスクリプト</div>
+  <div class="card-list" id="mine-list"></div>
+</div>
+
+<!-- ===================== ABOUT ===================== -->
+<div class="view hidden" id="view-about">
+  <div class="panel-box">
+    <h2 style="margin:0 0 10px;font-size:17px;">保護の仕組みと今後の予定</h2>
+    <p style="color:var(--muted);font-size:12.5px;line-height:1.8;margin:0 0 12px;">
+      現在の版はプロトタイプで、データはこの<b style="color:var(--accent)">端末のブラウザ内</b>にのみ保存されます（他の人のスマホ・PCからは見えません）。以下の機能はデモとして動作します。
+    </p>
+    <ul style="color:var(--muted);font-size:12.5px;line-height:2;padding-left:18px;margin:0">
+      <li><b style="color:var(--text)">オーナーキー</b>：投稿ごとに固有のキーを発行。キーを持つ人だけが編集・削除できます</li>
+      <li><b style="color:var(--text)">短縮スクリプトID</b>：例 <code style="color:var(--accent-2)">SV-8f3k2p</code> のようなIDでシェアリンクを生成</li>
+      <li><b style="color:var(--text)">巨大コード対応</b>：数十万行のソースでも折りたたみ表示・軽量表示に切り替えて固まらないように処理</li>
+      <li><b style="color:var(--text)">通報フラグ</b>：不正利用や盗用の疑いがある投稿にフラグを立てられます</li>
+    </ul>
+    <div class="protect-note">
+      <b>将来の拡張ポイント</b>：ストレージ層は <code>DB</code> という1つのオブジェクトにまとめてあるので、Firebase（Firestore）やサーバーAPIに差し替える際は、このオブジェクトの中身を置き換えるだけで、画面側のコードは変更不要な設計にしてあります。サーバー化すれば、端末をまたいだ本当の「作成者アカウント認証」やGitHub連携の短縮URL発行も実装できます。
+    </div>
+  </div>
+</div>
+
+<!-- ===================== DETAIL (overlay panel appended dynamically) ===================== -->
+<div class="view hidden" id="view-detail"></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+
+/* =========================================================
+   DB layer — swap this object for a Firebase/Firestore or
+   server-backed implementation later. Everything above the
+   UI calls only these methods.
+========================================================= */
+const STORAGE_KEY = 'scriptvault_scripts_v1';
+const OWNED_KEY = 'scriptvault_owned_tokens_v1';
+
+const DB = {
+  _read(){
+    try{ return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+    catch(e){ return []; }
+  },
+  _write(list){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); return true; }
+    catch(e){ return false; }
+  },
+  list(){ return this._read().sort((a,b)=>b.createdAt-a.createdAt); },
+  get(id){ return this._read().find(s=>s.id===id) || null; },
+  create(entry){
+    const list = this._read();
+    list.push(entry);
+    this._write(list);
+    return entry;
+  },
+  update(id, patch){
+    const list = this._read();
+    const idx = list.findIndex(s=>s.id===id);
+    if(idx===-1) return null;
+    list[idx] = Object.assign({}, list[idx], patch);
+    this._write(list);
+    return list[idx];
+  },
+  remove(id){
+    const list = this._read().filter(s=>s.id!==id);
+    this._write(list);
+  },
+  incrementViews(id){
+    const list = this._read();
+    const idx = list.findIndex(s=>s.id===id);
+    if(idx>-1){ list[idx].views = (list[idx].views||0)+1; this._write(list); }
+  }
+};
+
+const OwnedTokens = {
+  _read(){ try{ return JSON.parse(localStorage.getItem(OWNED_KEY) || '[]'); } catch(e){ return []; } },
+  add(id, token){
+    const list = this._read();
+    list.push({id, token});
+    localStorage.setItem(OWNED_KEY, JSON.stringify(list));
+  },
+  tokenFor(id){
+    const found = this._read().find(x=>x.id===id);
+    return found ? found.token : null;
+  },
+  ownsAny(){ return this._read().map(x=>x.id); }
+};
+
+/* ---------- helpers ---------- */
+function shortId(){
+  const t = Date.now().toString(36).slice(-5);
+  const r = Math.random().toString(36).slice(2,7);
+  return 'SV-' + (t+r).slice(0,8);
+}
+function genToken(){
+  return 'key_' + Math.random().toString(36).slice(2,10) + Math.random().toString(36).slice(2,10);
+}
+function escapeHtml(str){
+  return (str||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function timeAgo(ts){
+  const s = Math.floor((Date.now()-ts)/1000);
+  if(s<60) return 'たった今';
+  if(s<3600) return Math.floor(s/60)+'分前';
+  if(s<86400) return Math.floor(s/3600)+'時間前';
+  return Math.floor(s/86400)+'日前';
+}
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._h);
+  showToast._h = setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+/* ---------- seed demo data once ---------- */
+(function seed(){
+  if(DB._read().length>0) return;
+  const now = Date.now();
+  DB._write([
+    {
+      id: shortId(), title:'オートファーム v2', game:'Blox Fruits', author:'Kaien',
+      tags:['farm','auto'], desc:'指定エリアを自動周回してフルーツと経験値を稼ぐスクリプトです。',
+      license:'クレジット表記必須 / 再配布禁止', code:'-- Auto Farm Script\nlocal Players = game:GetService("Players")\nlocal player = Players.LocalPlayer\n\nlocal function autoFarm()\n  print("Farming started for "..player.Name)\n  -- ここに実際のファーム処理を実装\nend\n\nautoFarm()',
+      createdAt: now-1000*60*60*5, views: 214, reports:0, ownerToken:null
+    },
+    {
+      id: shortId(), title:'カスタムGUIライブラリ', game:'汎用', author:'Mochi',
+      tags:['gui','ui','library'], desc:'ドラッグ可能なウィンドウとタブを簡単に作れる軽量UIライブラリ。',
+      license:'改変OK / クレジット表記推奨', code:'-- Simple GUI Library\nlocal Library = {}\n\nfunction Library.new(title)\n  local gui = Instance.new("ScreenGui")\n  gui.Name = title\n  return gui\nend\n\nreturn Library',
+      createdAt: now-1000*60*60*30, views: 88, reports:0, ownerToken:null
+    }
+  ]);
+})();
+
+/* ---------- state ---------- */
+let currentTab = 'browse';
+
+/* ---------- tab switching ---------- */
+document.querySelectorAll('.tab').forEach(btn=>{
+  btn.addEventListener('click', ()=>switchTab(btn.dataset.tab));
+});
+function switchTab(tab){
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  ['browse','submit','mine','about','detail'].forEach(v=>{
+    document.getElementById('view-'+v).classList.toggle('hidden', v!==tab);
+  });
+  if(tab==='browse') renderBrowse();
+  if(tab==='mine') renderMine();
+  if(!location.hash.startsWith('#/s/') || tab!=='detail'){
+    if(tab!=='detail') history.replaceState(null,'','#/'+tab);
+  }
+}
+
+/* ---------- BROWSE ---------- */
+const searchInput = document.getElementById('search-input');
+const filterGame = document.getElementById('filter-game');
+const filterSort = document.getElementById('filter-sort');
+searchInput.addEventListener('input', renderBrowse);
+filterGame.addEventListener('change', renderBrowse);
+filterSort.addEventListener('change', renderBrowse);
+
+function renderBrowse(){
+  const all = DB.list();
+  const games = [...new Set(all.map(s=>s.game).filter(Boolean))].sort();
+  const prevGame = filterGame.value;
+  filterGame.innerHTML = '<option value="">すべてのゲーム</option>' + games.map(g=>`<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join('');
+  filterGame.value = games.includes(prevGame) ? prevGame : '';
+
+  document.getElementById('stat-total').textContent = all.length;
+  document.getElementById('stat-games').textContent = games.length;
+  document.getElementById('stat-views').textContent = all.reduce((a,s)=>a+(s.views||0),0);
+
+  const q = searchInput.value.trim().toLowerCase();
+  const g = filterGame.value;
+  let list = all.filter(s=>{
+    if(g && s.game!==g) return false;
+    if(!q) return true;
+    const hay = (s.title+' '+s.game+' '+(s.tags||[]).join(' ')+' '+s.author).toLowerCase();
+    return hay.includes(q);
+  });
+  const sort = filterSort.value;
+  if(sort==='views') list.sort((a,b)=>(b.views||0)-(a.views||0));
+  else if(sort==='title') list.sort((a,b)=>a.title.localeCompare(b.title,'ja'));
+
+  const wrap = document.getElementById('card-list');
+  if(list.length===0){
+    wrap.innerHTML = `<div class="empty">条件に一致するスクリプトが見つかりません。<br>「投稿する」タブから最初のスクリプトを公開してみましょう。</div>`;
+    return;
+  }
+  wrap.innerHTML = list.map(s=>{
+    const owned = OwnedTokens.tokenFor(s.id) ? '<span class="badge owner">あなたの投稿</span>' : `<span class="badge">${escapeHtml(s.id)}</span>`;
+    return `<div class="card" data-id="${s.id}">
+      <div class="card-top">
+        <div><div class="card-title">${escapeHtml(s.title)}</div><div class="card-game">${escapeHtml(s.game)}</div></div>
+        ${owned}
+      </div>
+      <div class="card-desc">${escapeHtml(s.desc||'説明はありません')}</div>
+      <div class="card-meta">
+        <span>👤 ${escapeHtml(s.author)}</span>
+        <span>👁 ${s.views||0}</span>
+        <span>🕒 ${timeAgo(s.createdAt)}</span>
+        <span>${lineCount(s.code)}行</span>
+      </div>
+    </div>`;
+  }).join('');
+  wrap.querySelectorAll('.card').forEach(el=>{
+    el.addEventListener('click', ()=>openDetail(el.dataset.id));
+  });
+}
+
+function lineCount(code){
+  if(!code) return 0;
+  let n=1;
+  for(let i=0;i<code.length;i++) if(code.charCodeAt(i)===10) n++;
+  return n.toLocaleString('ja-JP');
+}
+
+/* ---------- SUBMIT ---------- */
+const codeField = document.getElementById('f-code');
+codeField.addEventListener('input', updateCodeMeta);
+function updateCodeMeta(){
+  const v = codeField.value;
+  document.getElementById('code-linecount').textContent = lineCount(v)+' 行 / '+v.length.toLocaleString('ja-JP')+' 文字';
+  const warn = document.getElementById('code-warn');
+  warn.textContent = v.length > 300000 ? '⚠ 超大容量スクリプト：軽量表示モードで保存されます' : '';
+}
+
+document.getElementById('btn-clear-form').addEventListener('click', clearForm);
+function clearForm(){
+  ['f-title','f-game','f-author','f-tags','f-desc','f-license','f-code'].forEach(id=>document.getElementById(id).value='');
+  updateCodeMeta();
+}
+
+document.getElementById('btn-submit').addEventListener('click', ()=>{
+  const title = document.getElementById('f-title').value.trim();
+  const game = document.getElementById('f-game').value.trim();
+  const author = document.getElementById('f-author').value.trim();
+  const tags = document.getElementById('f-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
+  const desc = document.getElementById('f-desc').value.trim();
+  const license = document.getElementById('f-license').value.trim();
+  const code = codeField.value;
+
+  if(!title || !game || !author || !code.trim()){
+    showToast('タイトル・ゲーム名・作者名・コードは必須です');
+    return;
+  }
+
+  const id = shortId();
+  const token = genToken();
+  const entry = {
+    id, title, game, author, tags, desc, license, code,
+    createdAt: Date.now(), views:0, reports:0
+  };
+  DB.create(entry);
+  OwnedTokens.add(id, token);
+
+  clearForm();
+  showToast('投稿しました');
+  switchTab('mine');
+  renderMine();
+  setTimeout(()=>{
+    alert('オーナーキーが発行されました。編集・削除に必要なので保存してください:\\n\\n'+token+'\\n\\nスクリプトID: '+id);
+  }, 150);
+});
+
+/* ---------- MINE ---------- */
+document.getElementById('btn-claim').addEventListener('click', ()=>{
+  const token = document.getElementById('claim-token').value.trim();
+  if(!token){ showToast('オーナーキーを入力してください'); return; }
+  const all = DB.list();
+  // in this local-only prototype we cannot verify a token against unknown scripts;
+  // this control is a placeholder for the future server-verified claim flow.
+  showToast('この端末にない投稿の復元はサーバー版で対応予定です');
+});
+
+function renderMine(){
+  const ids = OwnedTokens.ownsAny();
+  const wrap = document.getElementById('mine-list');
+  const mine = DB.list().filter(s=>ids.includes(s.id));
+  if(mine.length===0){
+    wrap.innerHTML = `<div class="empty">まだ投稿がありません。「投稿する」タブから公開してみましょう。</div>`;
+    return;
+  }
+  wrap.innerHTML = mine.map(s=>`
+    <div class="card" data-id="${s.id}">
+      <div class="card-top">
+        <div><div class="card-title">${escapeHtml(s.title)}</div><div class="card-game">${escapeHtml(s.game)}</div></div>
+        <span class="badge owner">${escapeHtml(s.id)}</span>
+      </div>
+      <div class="card-meta">
+        <span>👁 ${s.views||0}</span>
+        <span>🚩 通報 ${s.reports||0}</span>
+        <span>🕒 ${timeAgo(s.createdAt)}</span>
+      </div>
+      <div class="btn-row" style="margin-top:10px">
+        <button class="btn" data-act="view">表示</button>
+        <button class="btn danger" data-act="delete">削除</button>
+      </div>
+    </div>
+  `).join('');
+  wrap.querySelectorAll('.card').forEach(card=>{
+    const id = card.dataset.id;
+    card.querySelector('[data-act=view]').addEventListener('click', (e)=>{ e.stopPropagation(); openDetail(id); });
+    card.querySelector('[data-act=delete]').addEventListener('click', (e)=>{
+      e.stopPropagation();
+      if(confirm('このスクリプトを削除しますか？元に戻せません。')){
+        DB.remove(id);
+        renderMine();
+        showToast('削除しました');
+      }
+    });
+  });
+}
+
+/* ---------- DETAIL ---------- */
+function openDetail(id){
+  const s = DB.get(id);
+  if(!s){ showToast('スクリプトが見つかりません'); return; }
+  DB.incrementViews(id);
+  const fresh = DB.get(id);
+  const owns = !!OwnedTokens.tokenFor(id);
+  const huge = fresh.code.length > 300000;
+  const shareUrl = location.origin+location.pathname+'#/s/'+id;
+
+  const detail = document.getElementById('view-detail');
+  detail.innerHTML = `
+    <button class="btn ghost" id="back-btn" style="margin-bottom:14px;">← 戻る</button>
+    <div class="panel-box">
+      <div class="detail-head">
+        <div>
+          <h2 class="detail-title">${escapeHtml(fresh.title)}</h2>
+          <div class="detail-sub">${escapeHtml(fresh.game)} ・ 作者: ${escapeHtml(fresh.author)} ${owns?'<span class="badge owner" style="margin-left:6px;">あなたの投稿</span>':''}</div>
+        </div>
+        <span class="badge">${escapeHtml(fresh.id)}</span>
+      </div>
+
+      <div class="chip-row">
+        ${(fresh.tags||[]).map(t=>`<span class="chip">#${escapeHtml(t)}</span>`).join('')}
+      </div>
+
+      <p style="font-size:13px;color:var(--muted);line-height:1.7;margin:8px 0 0;">${escapeHtml(fresh.desc||'説明はありません')}</p>
+
+      ${fresh.license ? `<div class="protect-note"><b>利用条件</b>：${escapeHtml(fresh.license)}</div>` : ''}
+
+      <label style="margin-top:16px;">シェアリンク（短縮スクリプトID）</label>
+      <div class="token-box"><code id="share-url">${escapeHtml(shareUrl)}</code></div>
+
+      <label>ソースコード（${lineCount(fresh.code)}行 / ${fresh.code.length.toLocaleString('ja-JP')}文字）${huge?' — 軽量表示中':''}</label>
+      <div class="code-box">
+        <textarea class="field" id="detail-code" readonly rows="${huge?12:16}">${huge ? fresh.code.slice(0,20000)+'\\n\\n... [軽量表示のため以降は省略。全文コピー／ダウンロードは下のボタンから] ...' : escapeHtml(fresh.code)}</textarea>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn primary" id="copy-code-btn">コードを全文コピー</button>
+        <button class="btn" id="copy-link-btn">リンクをコピー</button>
+        <button class="btn ghost" id="report-btn">🚩 不正利用を通報</button>
+        ${owns ? '<button class="btn danger" id="delete-btn">削除</button>' : ''}
+      </div>
+      <div class="hint">👁 ${fresh.views} 回閲覧 ・ 投稿: ${timeAgo(fresh.createdAt)} ・ 通報 ${fresh.reports||0}件</div>
+    </div>
+  `;
+  switchTab('detail');
+
+  document.getElementById('back-btn').addEventListener('click', ()=>{
+    history.replaceState(null,'','#/browse');
+    switchTab('browse');
+  });
+  document.getElementById('copy-code-btn').addEventListener('click', ()=>copyText(fresh.code, 'コードをコピーしました'));
+  document.getElementById('copy-link-btn').addEventListener('click', ()=>copyText(shareUrl, 'リンクをコピーしました'));
+  document.getElementById('report-btn').addEventListener('click', ()=>{
+    if(confirm('このスクリプトを不正利用・盗用の疑いとして通報しますか？')){
+      DB.update(id, {reports:(fresh.reports||0)+1});
+      showToast('通報しました。ご協力ありがとうございます');
+      openDetail(id);
+    }
+  });
+  const delBtn = document.getElementById('delete-btn');
+  if(delBtn) delBtn.addEventListener('click', ()=>{
+    if(confirm('このスクリプトを削除しますか？元に戻せません。')){
+      DB.remove(id);
+      showToast('削除しました');
+      history.replaceState(null,'','#/browse');
+      switchTab('browse');
+    }
+  });
+
+  history.replaceState(null,'','#/s/'+id);
+}
+
+function copyText(text, msg){
+  const done = ()=>showToast(msg);
+  const fail = ()=>{
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); done(); }catch(e){ showToast('コピーできませんでした。手動で選択してください'); }
+    document.body.removeChild(ta);
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done).catch(fail);
+  } else { fail(); }
+}
+
+/* ---------- routing on load ---------- */
+function initRoute(){
+  const h = location.hash;
+  if(h.startsWith('#/s/')){
+    const id = h.slice(4);
+    if(DB.get(id)){ openDetail(id); return; }
+  }
+  const tab = h.replace('#/','');
+  if(['browse','submit','mine','about'].includes(tab)) switchTab(tab);
+  else switchTab('browse');
+}
+
+updateCodeMeta();
+initRoute();
+renderBrowse();
+})();
+</script>
+</body>
+</html>
